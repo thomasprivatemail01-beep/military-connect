@@ -16,8 +16,10 @@ const app = express();
 const server = http.createServer(app);
 
 const PORT = Number(process.env.PORT) || 5000;
+
 const JWT_SECRET: string =
-  process.env.JWT_SECRET || "military-connect-development-secret";
+  process.env.JWT_SECRET ||
+  "military-connect-development-secret";
 
 const FRONTEND_ORIGINS = [
   "http://localhost:5173",
@@ -378,6 +380,20 @@ async function initializeDatabase() {
     "Database tables are ready"
   );
 }
+
+/* =========================================================
+   BASIC ROUTE
+========================================================= */
+
+app.get(
+  "/",
+  (_req, res) => {
+    res.json({
+      message:
+        "Military Connect server is running",
+    });
+  }
+);
 
 /* =========================================================
    HEALTH CHECK
@@ -883,10 +899,6 @@ app.post(
         });
       }
 
-      /* ---------------------------------------------------
-         CHECK THAT THE OTHER USER EXISTS
-      --------------------------------------------------- */
-
       const userResult =
         await pool.query(
           `
@@ -918,10 +930,6 @@ app.post(
 
       const contactUser =
         userResult.rows[0];
-
-      /* ---------------------------------------------------
-         CHECK IF ALREADY ADDED
-      --------------------------------------------------- */
 
       const existingContact =
         await pool.query(
@@ -957,10 +965,6 @@ app.post(
             ),
         });
       }
-
-      /* ---------------------------------------------------
-         INSERT CONTACT
-      --------------------------------------------------- */
 
       const insertResult =
         await pool.query(
@@ -1437,10 +1441,6 @@ io.on(
             return;
           }
 
-          /* -----------------------------------------------
-             CHECK RECEIVER
-          ----------------------------------------------- */
-
           const receiverResult =
             await pool.query(
               `
@@ -1463,10 +1463,6 @@ io.on(
 
             return;
           }
-
-          /* -----------------------------------------------
-             SAVE MESSAGE
-          ----------------------------------------------- */
 
           const result =
             await pool.query(
@@ -1513,19 +1509,11 @@ io.on(
             savedMessage
           );
 
-          /* -----------------------------------------------
-             ACKNOWLEDGE SENDER
-          ----------------------------------------------- */
-
           callback?.({
             success: true,
             message:
               savedMessage,
           });
-
-          /* -----------------------------------------------
-             SEND TO RECIPIENT
-          ----------------------------------------------- */
 
           io.to(
             `user:${receiverId}`
