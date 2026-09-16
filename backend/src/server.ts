@@ -24,6 +24,7 @@ const JWT_SECRET: string =
 const FRONTEND_ORIGINS = [
   "http://localhost:5173",
   "http://127.0.0.1:5173",
+  "https://military-connect.vercel.app",
 ];
 
 app.use(
