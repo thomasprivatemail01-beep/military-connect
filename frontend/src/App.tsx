@@ -7,8 +7,21 @@ import type {
 import { io, type Socket } from "socket.io-client";
 import "./App.css";
 
-const API_URL = "http://localhost:5000/api";
-const SOCKET_URL = "http://localhost:5000";
+/* =========================================================
+   BACKEND CONNECTION
+========================================================= */
+
+const API_URL =
+  import.meta.env.VITE_API_URL ||
+  "http://localhost:5000/api";
+
+const SOCKET_URL =
+  import.meta.env.VITE_SOCKET_URL ||
+  "http://localhost:5000";
+
+/* =========================================================
+   TYPES
+========================================================= */
 
 interface User {
   id: number;
@@ -46,71 +59,124 @@ interface ImageUploadResponse {
   mediaUrl?: string;
 }
 
+/* =========================================================
+   APP
+========================================================= */
+
 function App() {
   const [token, setToken] = useState<string | null>(() =>
     localStorage.getItem("military_connect_token")
   );
 
   const [currentUser, setCurrentUser] = useState<User | null>(() => {
-    const savedUser = localStorage.getItem("military_connect_user");
+    const savedUser =
+      localStorage.getItem(
+        "military_connect_user"
+      );
 
     if (!savedUser) {
       return null;
     }
 
     try {
-      return JSON.parse(savedUser) as User;
+      return JSON.parse(
+        savedUser
+      ) as User;
     } catch {
       return null;
     }
   });
 
-  const [authMode, setAuthMode] = useState<"login" | "register">(
-    "login"
-  );
+  const [authMode, setAuthMode] =
+    useState<"login" | "register">(
+      "login"
+    );
 
-  const [authName, setAuthName] = useState("");
-  const [authEmail, setAuthEmail] = useState("");
-  const [authPassword, setAuthPassword] = useState("");
-  const [authLoading, setAuthLoading] = useState(false);
+  const [authName, setAuthName] =
+    useState("");
 
-  const [contacts, setContacts] = useState<User[]>([]);
-  const [selectedContact, setSelectedContact] = useState<User | null>(
-    null
-  );
+  const [authEmail, setAuthEmail] =
+    useState("");
 
-  const selectedContactRef = useRef<User | null>(null);
+  const [authPassword, setAuthPassword] =
+    useState("");
 
-  const [messages, setMessages] = useState<Message[]>([]);
-  const [messageText, setMessageText] = useState("");
+  const [authLoading, setAuthLoading] =
+    useState(false);
 
-  const [searchEmail, setSearchEmail] = useState("");
-  const [searchResults, setSearchResults] = useState<User[]>([]);
+  const [contacts, setContacts] =
+    useState<User[]>([]);
 
-  const [messagesLoading, setMessagesLoading] = useState(false);
-  const [contactsLoading, setContactsLoading] = useState(false);
-  const [searchLoading, setSearchLoading] = useState(false);
-  const [addingContactId, setAddingContactId] = useState<number | null>(
-    null
-  );
+  const [selectedContact, setSelectedContact] =
+    useState<User | null>(null);
 
-  const [error, setError] = useState("");
-  const [notice, setNotice] = useState("");
+  const selectedContactRef =
+    useRef<User | null>(null);
 
-  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [messages, setMessages] =
+    useState<Message[]>([]);
+
+  const [messageText, setMessageText] =
+    useState("");
+
+  const [searchEmail, setSearchEmail] =
+    useState("");
+
+  const [searchResults, setSearchResults] =
+    useState<User[]>([]);
+
+  const [messagesLoading, setMessagesLoading] =
+    useState(false);
+
+  const [contactsLoading, setContactsLoading] =
+    useState(false);
+
+  const [searchLoading, setSearchLoading] =
+    useState(false);
+
+  const [addingContactId, setAddingContactId] =
+    useState<number | null>(null);
+
+  const [error, setError] =
+    useState("");
+
+  const [notice, setNotice] =
+    useState("");
+
+  const [imagePreview, setImagePreview] =
+    useState<string | null>(null);
+
   const [selectedImageFile, setSelectedImageFile] =
     useState<File | null>(null);
-  const [imageSending, setImageSending] = useState(false);
 
-  const imageInputRef = useRef<HTMLInputElement | null>(null);
+  const [imageSending, setImageSending] =
+    useState(false);
 
-  const socketRef = useRef<Socket | null>(null);
+  const imageInputRef =
+    useRef<HTMLInputElement | null>(
+      null
+    );
 
-  const messagesContainerRef = useRef<HTMLDivElement | null>(null);
-  const messageInputRef = useRef<HTMLTextAreaElement | null>(null);
+  const socketRef =
+    useRef<Socket | null>(null);
+
+  const messagesContainerRef =
+    useRef<HTMLDivElement | null>(
+      null
+    );
+
+  const messageInputRef =
+    useRef<HTMLTextAreaElement | null>(
+      null
+    );
+
+  /* =========================================================
+     SELECTED CONTACT REF
+  ========================================================= */
 
   useEffect(() => {
-    selectedContactRef.current = selectedContact;
+    selectedContactRef.current =
+      selectedContact;
   }, [selectedContact]);
 
   /* =========================================================
@@ -121,17 +187,26 @@ function App() {
     url: string,
     options: RequestInit = {}
   ) {
-    const headers = new Headers(options.headers || {});
+    const headers =
+      new Headers(
+        options.headers || {}
+      );
 
     if (token) {
-      headers.set("Authorization", `Bearer ${token}`);
+      headers.set(
+        "Authorization",
+        `Bearer ${token}`
+      );
     }
 
     if (
       options.body &&
       !(options.body instanceof FormData)
     ) {
-      headers.set("Content-Type", "application/json");
+      headers.set(
+        "Content-Type",
+        "application/json"
+      );
     }
 
     return fetch(url, {
@@ -162,24 +237,41 @@ function App() {
       const body =
         authMode === "login"
           ? {
-              email: authEmail.trim().toLowerCase(),
-              password: authPassword,
+              email:
+                authEmail
+                  .trim()
+                  .toLowerCase(),
+              password:
+                authPassword,
             }
           : {
-              fullName: authName.trim(),
-              email: authEmail.trim().toLowerCase(),
-              password: authPassword,
+              fullName:
+                authName.trim(),
+              email:
+                authEmail
+                  .trim()
+                  .toLowerCase(),
+              password:
+                authPassword,
             };
 
-      const response = await fetch(endpoint, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(body),
-      });
+      const response =
+        await fetch(
+          endpoint,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type":
+                "application/json",
+            },
+            body: JSON.stringify(
+              body
+            ),
+          }
+        );
 
-      const data = (await response.json()) as AuthResponse;
+      const data =
+        (await response.json()) as AuthResponse;
 
       if (
         !response.ok ||
@@ -191,6 +283,7 @@ function App() {
           data.message ||
             "Unable to complete authentication."
         );
+
         return;
       }
 
@@ -201,11 +294,15 @@ function App() {
 
       localStorage.setItem(
         "military_connect_user",
-        JSON.stringify(data.user)
+        JSON.stringify(
+          data.user
+        )
       );
 
       setToken(data.token);
-      setCurrentUser(data.user);
+      setCurrentUser(
+        data.user
+      );
 
       setAuthPassword("");
 
@@ -215,7 +312,9 @@ function App() {
           : "Account created successfully."
       );
     } catch (authError) {
-      console.error(authError);
+      console.error(
+        authError
+      );
 
       setError(
         "Unable to connect to Military Connect server."
@@ -264,13 +363,18 @@ function App() {
     setContactsLoading(true);
 
     try {
-      const response = await apiFetch(
-        `${API_URL}/contacts`
-      );
+      const response =
+        await apiFetch(
+          `${API_URL}/contacts`
+        );
 
-      const data = await response.json();
+      const data =
+        await response.json();
 
-      if (!response.ok || !data.success) {
+      if (
+        !response.ok ||
+        !data.success
+      ) {
         throw new Error(
           data.message ||
             "Unable to load contacts."
@@ -278,7 +382,9 @@ function App() {
       }
 
       setContacts(
-        Array.isArray(data.contacts)
+        Array.isArray(
+          data.contacts
+        )
           ? data.contacts
           : []
       );
@@ -292,41 +398,60 @@ function App() {
         "Unable to load your contacts."
       );
     } finally {
-      setContactsLoading(false);
+      setContactsLoading(
+        false
+      );
     }
   }
 
   useEffect(() => {
-    if (!token || !currentUser) {
+    if (
+      !token ||
+      !currentUser
+    ) {
       return;
     }
 
-    loadContacts();
-  }, [token, currentUser]);
+    void loadContacts();
+  }, [
+    token,
+    currentUser,
+  ]);
 
   /* =========================================================
      SOCKET CONNECTION
   ========================================================= */
 
   useEffect(() => {
-    if (!token || !currentUser) {
+    if (
+      !token ||
+      !currentUser
+    ) {
       return;
     }
 
-    const socket = io(SOCKET_URL, {
-      auth: {
-        token,
-      },
-      transports: ["websocket"],
-    });
+    const socket =
+      io(SOCKET_URL, {
+        auth: {
+          token,
+        },
+        transports: [
+          "websocket",
+          "polling",
+        ],
+      });
 
-    socketRef.current = socket;
+    socketRef.current =
+      socket;
 
-    socket.on("connect", () => {
-      console.log(
-        "Connected to Military Connect server"
-      );
-    });
+    socket.on(
+      "connect",
+      () => {
+        console.log(
+          "Connected to Military Connect server"
+        );
+      }
+    );
 
     socket.on(
       "connect_error",
@@ -346,15 +471,21 @@ function App() {
           message
         );
 
-        addIncomingMessage(message);
+        addIncomingMessage(
+          message
+        );
       }
     );
 
     return () => {
       socket.disconnect();
-      socketRef.current = null;
+      socketRef.current =
+        null;
     };
-  }, [token, currentUser]);
+  }, [
+    token,
+    currentUser,
+  ]);
 
   /* =========================================================
      ADD INCOMING MESSAGE
@@ -366,31 +497,47 @@ function App() {
     const contact =
       selectedContactRef.current;
 
-    if (!contact || !currentUser) {
+    if (
+      !contact ||
+      !currentUser
+    ) {
       return;
     }
 
     const belongsToCurrentConversation =
-      (message.senderId === currentUser.id &&
-        message.receiverId === contact.id) ||
-      (message.senderId === contact.id &&
-        message.receiverId === currentUser.id);
+      (message.senderId ===
+        currentUser.id &&
+        message.receiverId ===
+          contact.id) ||
+      (message.senderId ===
+        contact.id &&
+        message.receiverId ===
+          currentUser.id);
 
-    if (!belongsToCurrentConversation) {
+    if (
+      !belongsToCurrentConversation
+    ) {
       return;
     }
 
-    setMessages((previous) => {
-      if (
-        previous.some(
-          (item) => item.id === message.id
-        )
-      ) {
-        return previous;
-      }
+    setMessages(
+      (previous) => {
+        if (
+          previous.some(
+            (item) =>
+              item.id ===
+              message.id
+          )
+        ) {
+          return previous;
+        }
 
-      return [...previous, message];
-    });
+        return [
+          ...previous,
+          message,
+        ];
+      }
+    );
 
     setTimeout(() => {
       scrollToBottom();
@@ -404,26 +551,41 @@ function App() {
   async function loadConversation(
     contact: User
   ) {
-    if (!token || !currentUser) {
+    if (
+      !token ||
+      !currentUser
+    ) {
       return;
     }
 
-    setSelectedContact(contact);
-    selectedContactRef.current = contact;
+    setSelectedContact(
+      contact
+    );
+
+    selectedContactRef.current =
+      contact;
 
     setMessages([]);
-    setMessagesLoading(true);
+    setMessagesLoading(
+      true
+    );
+
     setError("");
     setNotice("");
 
     try {
-      const response = await apiFetch(
-        `${API_URL}/messages/${contact.id}`
-      );
+      const response =
+        await apiFetch(
+          `${API_URL}/messages/${contact.id}`
+        );
 
-      const data = await response.json();
+      const data =
+        await response.json();
 
-      if (!response.ok || !data.success) {
+      if (
+        !response.ok ||
+        !data.success
+      ) {
         throw new Error(
           data.message ||
             "Unable to load messages."
@@ -431,14 +593,17 @@ function App() {
       }
 
       if (
-        selectedContactRef.current?.id !==
+        selectedContactRef
+          .current?.id !==
         contact.id
       ) {
         return;
       }
 
       setMessages(
-        Array.isArray(data.messages)
+        Array.isArray(
+          data.messages
+        )
           ? data.messages
           : []
       );
@@ -456,15 +621,19 @@ function App() {
         "Unable to load this conversation."
       );
     } finally {
-      setMessagesLoading(false);
+      setMessagesLoading(
+        false
+      );
     }
   }
 
   /* =========================================================
-     FIXED ADD CONTACT
+     ADD CONTACT
   ========================================================= */
 
-  async function addContact(user: User) {
+  async function addContact(
+    user: User
+  ) {
     console.log(
       "ADD BUTTON CLICKED:",
       user
@@ -474,17 +643,25 @@ function App() {
       setError(
         "Your session has expired. Please log in again."
       );
+
       return;
     }
 
-    if (!user || !user.id) {
+    if (
+      !user ||
+      !user.id
+    ) {
       setError(
         "Invalid user selected."
       );
+
       return;
     }
 
-    setAddingContactId(user.id);
+    setAddingContactId(
+      user.id
+    );
+
     setError("");
     setNotice("");
 
@@ -494,17 +671,22 @@ function App() {
         user.id
       );
 
-      const response = await apiFetch(
-        `${API_URL}/contacts`,
-        {
-          method: "POST",
-          body: JSON.stringify({
-            contactUserId: user.id,
-          }),
-        }
-      );
+      const response =
+        await apiFetch(
+          `${API_URL}/contacts`,
+          {
+            method: "POST",
+            body: JSON.stringify(
+              {
+                contactUserId:
+                  user.id,
+              }
+            ),
+          }
+        );
 
-      const data = await response.json();
+      const data =
+        await response.json();
 
       console.log(
         "ADD CONTACT RESPONSE:",
@@ -512,38 +694,43 @@ function App() {
         data
       );
 
-      if (!response.ok || !data.success) {
+      if (
+        !response.ok ||
+        !data.success
+      ) {
         throw new Error(
           data.message ||
             "Unable to add contact."
         );
       }
 
-      /*
-       * Add the person locally immediately.
-       */
-      setContacts((previous) => {
-        const alreadyExists =
-          previous.some(
-            (contact) =>
-              contact.id === user.id
+      setContacts(
+        (previous) => {
+          const alreadyExists =
+            previous.some(
+              (contact) =>
+                contact.id ===
+                user.id
+            );
+
+          if (
+            alreadyExists
+          ) {
+            return previous;
+          }
+
+          return [
+            ...previous,
+            user,
+          ].sort(
+            (a, b) =>
+              a.fullName.localeCompare(
+                b.fullName
+              )
           );
-
-        if (alreadyExists) {
-          return previous;
         }
+      );
 
-        return [...previous, user].sort(
-          (a, b) =>
-            a.fullName.localeCompare(
-              b.fullName
-            )
-        );
-      });
-
-      /*
-       * Clear the search.
-       */
       setSearchResults([]);
       setSearchEmail("");
 
@@ -551,31 +738,36 @@ function App() {
         `${user.fullName} has been added to your contacts.`
       );
 
-      /*
-       * Refresh contacts from PostgreSQL.
-       */
       await loadContacts();
 
-      /*
-       * Open the new conversation.
-       */
-      setSelectedContact(user);
-      selectedContactRef.current = user;
+      setSelectedContact(
+        user
+      );
 
-      await loadConversation(user);
-    } catch (contactError) {
+      selectedContactRef.current =
+        user;
+
+      await loadConversation(
+        user
+      );
+    } catch (
+      contactError
+    ) {
       console.error(
         "ADD CONTACT ERROR:",
         contactError
       );
 
       setError(
-        contactError instanceof Error
+        contactError instanceof
+          Error
           ? contactError.message
           : "Unable to add contact."
       );
     } finally {
-      setAddingContactId(null);
+      setAddingContactId(
+        null
+      );
     }
   }
 
@@ -589,28 +781,39 @@ function App() {
     event?.preventDefault();
 
     const email =
-      searchEmail.trim().toLowerCase();
+      searchEmail
+        .trim()
+        .toLowerCase();
 
     if (!email) {
       setSearchResults([]);
       setNotice("");
+
       return;
     }
 
-    setSearchLoading(true);
+    setSearchLoading(
+      true
+    );
+
     setError("");
     setNotice("");
 
     try {
-      const response = await apiFetch(
-        `${API_URL}/users/search?email=${encodeURIComponent(
-          email
-        )}`
-      );
+      const response =
+        await apiFetch(
+          `${API_URL}/users/search?email=${encodeURIComponent(
+            email
+          )}`
+        );
 
-      const data = await response.json();
+      const data =
+        await response.json();
 
-      if (!response.ok || !data.success) {
+      if (
+        !response.ok ||
+        !data.success
+      ) {
         throw new Error(
           data.message ||
             "Unable to search."
@@ -618,18 +821,26 @@ function App() {
       }
 
       const users: User[] =
-        Array.isArray(data.users)
+        Array.isArray(
+          data.users
+        )
           ? data.users
           : [];
 
-      setSearchResults(users);
+      setSearchResults(
+        users
+      );
 
-      if (users.length === 0) {
+      if (
+        users.length === 0
+      ) {
         setNotice(
           "No user found with that email address."
         );
       }
-    } catch (searchError) {
+    } catch (
+      searchError
+    ) {
       console.error(
         "SEARCH ERROR:",
         searchError
@@ -639,7 +850,9 @@ function App() {
         "Unable to search for that user."
       );
     } finally {
-      setSearchLoading(false);
+      setSearchLoading(
+        false
+      );
     }
   }
 
@@ -656,7 +869,8 @@ function App() {
     }
 
     container.scrollTo({
-      top: container.scrollHeight,
+      top:
+        container.scrollHeight,
       behavior: "smooth",
     });
   }
@@ -687,10 +901,14 @@ function App() {
       return;
     }
 
-    if (!selectedContact || !currentUser) {
+    if (
+      !selectedContact ||
+      !currentUser
+    ) {
       setError(
         "Please select a contact first."
       );
+
       return;
     }
 
@@ -704,6 +922,7 @@ function App() {
       setError(
         "Chat connection is not available."
       );
+
       return;
     }
 
@@ -715,7 +934,8 @@ function App() {
         receiverId:
           selectedContact.id,
         content: text,
-        messageType: "text",
+        messageType:
+          "text",
       },
       (
         response: SocketMessageResponse
@@ -764,16 +984,18 @@ function App() {
     event: KeyboardEvent<HTMLTextAreaElement>
   ) {
     if (
-      event.key === "Enter" &&
+      event.key ===
+        "Enter" &&
       !event.shiftKey
     ) {
       event.preventDefault();
+
       sendMessage();
     }
   }
 
   /* =========================================================
-     IMAGE
+     IMAGE PICKER
   ========================================================= */
 
   function openImagePicker() {
@@ -790,11 +1012,18 @@ function App() {
       return;
     }
 
-    if (!file.type.startsWith("image/")) {
+    if (
+      !file.type.startsWith(
+        "image/"
+      )
+    ) {
       setError(
         "Please select an image file."
       );
-      event.target.value = "";
+
+      event.target.value =
+        "";
+
       return;
     }
 
@@ -805,18 +1034,27 @@ function App() {
       setError(
         "Image must be smaller than 10 MB."
       );
-      event.target.value = "";
+
+      event.target.value =
+        "";
+
       return;
     }
 
     setError("");
 
-    setSelectedImageFile(file);
+    setSelectedImageFile(
+      file
+    );
 
     const previewUrl =
-      URL.createObjectURL(file);
+      URL.createObjectURL(
+        file
+      );
 
-    setImagePreview(previewUrl);
+    setImagePreview(
+      previewUrl
+    );
   }
 
   function cancelImage() {
@@ -827,9 +1065,13 @@ function App() {
     }
 
     setImagePreview(null);
-    setSelectedImageFile(null);
+    setSelectedImageFile(
+      null
+    );
 
-    if (imageInputRef.current) {
+    if (
+      imageInputRef.current
+    ) {
       imageInputRef.current.value =
         "";
     }
@@ -858,10 +1100,14 @@ function App() {
       setError(
         "Chat connection is not available."
       );
+
       return;
     }
 
-    setImageSending(true);
+    setImageSending(
+      true
+    );
+
     setError("");
 
     try {
@@ -902,8 +1148,10 @@ function App() {
           receiverId:
             selectedContact.id,
           content: "",
-          messageType: "image",
-          mediaUrl: data.mediaUrl,
+          messageType:
+            "image",
+          mediaUrl:
+            data.mediaUrl,
         },
         (
           socketResponse: SocketMessageResponse
@@ -938,19 +1186,24 @@ function App() {
           );
         }
       );
-    } catch (uploadError) {
+    } catch (
+      uploadError
+    ) {
       console.error(
         "IMAGE ERROR:",
         uploadError
       );
 
       setError(
-        uploadError instanceof Error
+        uploadError instanceof
+          Error
           ? uploadError.message
           : "Unable to send image."
       );
     } finally {
-      setImageSending(false);
+      setImageSending(
+        false
+      );
     }
   }
 
@@ -966,8 +1219,12 @@ function App() {
     }
 
     if (
-      mediaUrl.startsWith("http://") ||
-      mediaUrl.startsWith("https://")
+      mediaUrl.startsWith(
+        "http://"
+      ) ||
+      mediaUrl.startsWith(
+        "https://"
+      )
     ) {
       return mediaUrl;
     }
@@ -984,10 +1241,13 @@ function App() {
   ) {
     return new Date(
       createdAt
-    ).toLocaleTimeString([], {
-      hour: "numeric",
-      minute: "2-digit",
-    });
+    ).toLocaleTimeString(
+      [],
+      {
+        hour: "numeric",
+        minute: "2-digit",
+      }
+    );
   }
 
   /* =========================================================
@@ -1009,7 +1269,9 @@ function App() {
   ]);
 
   useEffect(() => {
-    if (messages.length > 0) {
+    if (
+      messages.length > 0
+    ) {
       setTimeout(() => {
         scrollToBottom();
       }, 50);
@@ -1020,7 +1282,10 @@ function App() {
      LOGIN / REGISTER SCREEN
   ========================================================= */
 
-  if (!token || !currentUser) {
+  if (
+    !token ||
+    !currentUser
+  ) {
     return (
       <div className="app-shell">
         <div className="auth-card">
@@ -1044,12 +1309,16 @@ function App() {
             <button
               type="button"
               className={
-                authMode === "login"
+                authMode ===
+                "login"
                   ? "active"
                   : ""
               }
               onClick={() => {
-                setAuthMode("login");
+                setAuthMode(
+                  "login"
+                );
+
                 setError("");
               }}
             >
@@ -1059,12 +1328,16 @@ function App() {
             <button
               type="button"
               className={
-                authMode === "register"
+                authMode ===
+                "register"
                   ? "active"
                   : ""
               }
               onClick={() => {
-                setAuthMode("register");
+                setAuthMode(
+                  "register"
+                );
+
                 setError("");
               }}
             >
@@ -1074,7 +1347,9 @@ function App() {
 
           <form
             className="auth-form"
-            onSubmit={handleAuth}
+            onSubmit={
+              handleAuth
+            }
           >
             {authMode ===
               "register" && (
@@ -1083,10 +1358,16 @@ function App() {
 
                 <input
                   type="text"
-                  value={authName}
-                  onChange={(event) =>
+                  value={
+                    authName
+                  }
+                  onChange={(
+                    event
+                  ) =>
                     setAuthName(
-                      event.target.value
+                      event
+                        .target
+                        .value
                     )
                   }
                   placeholder="Your full name"
@@ -1100,10 +1381,16 @@ function App() {
 
               <input
                 type="email"
-                value={authEmail}
-                onChange={(event) =>
+                value={
+                  authEmail
+                }
+                onChange={(
+                  event
+                ) =>
                   setAuthEmail(
-                    event.target.value
+                    event
+                      .target
+                      .value
                   )
                 }
                 placeholder="name@gmail.com"
@@ -1116,10 +1403,16 @@ function App() {
 
               <input
                 type="password"
-                value={authPassword}
-                onChange={(event) =>
+                value={
+                  authPassword
+                }
+                onChange={(
+                  event
+                ) =>
                   setAuthPassword(
-                    event.target.value
+                    event
+                      .target
+                      .value
                   )
                 }
                 placeholder="Enter your password"
@@ -1142,7 +1435,9 @@ function App() {
             <button
               className="primary-button"
               type="submit"
-              disabled={authLoading}
+              disabled={
+                authLoading
+              }
             >
               {authLoading
                 ? "Please wait..."
@@ -1184,7 +1479,9 @@ function App() {
           <button
             type="button"
             className="logout-button"
-            onClick={logout}
+            onClick={
+              logout
+            }
           >
             Logout
           </button>
@@ -1199,11 +1496,15 @@ function App() {
 
           <div>
             <strong>
-              {currentUser.fullName}
+              {
+                currentUser.fullName
+              }
             </strong>
 
             <span>
-              {currentUser.email}
+              {
+                currentUser.email
+              }
             </span>
           </div>
         </div>
@@ -1212,14 +1513,22 @@ function App() {
 
         <form
           className="search-box"
-          onSubmit={searchUser}
+          onSubmit={
+            searchUser
+          }
         >
           <input
             type="email"
-            value={searchEmail}
-            onChange={(event) =>
+            value={
+              searchEmail
+            }
+            onChange={(
+              event
+            ) =>
               setSearchEmail(
-                event.target.value
+                event
+                  .target
+                  .value
               )
             }
             placeholder="Find someone by email..."
@@ -1227,7 +1536,9 @@ function App() {
 
           <button
             type="submit"
-            disabled={searchLoading}
+            disabled={
+              searchLoading
+            }
           >
             {searchLoading
               ? "..."
@@ -1237,7 +1548,8 @@ function App() {
 
         {/* SEARCH RESULTS */}
 
-        {searchResults.length > 0 && (
+        {searchResults.length >
+          0 && (
           <div className="search-results">
             {searchResults.map(
               (user) => {
@@ -1247,7 +1559,9 @@ function App() {
 
                 const alreadyAdded =
                   contacts.some(
-                    (contact) =>
+                    (
+                      contact
+                    ) =>
                       contact.id ===
                       user.id
                   );
@@ -1255,21 +1569,29 @@ function App() {
                 return (
                   <div
                     className="search-result"
-                    key={user.id}
+                    key={
+                      user.id
+                    }
                   >
                     <div className="contact-avatar">
                       {user.fullName
-                        .charAt(0)
+                        .charAt(
+                          0
+                        )
                         .toUpperCase()}
                     </div>
 
                     <div className="contact-info">
                       <strong>
-                        {user.fullName}
+                        {
+                          user.fullName
+                        }
                       </strong>
 
                       <span>
-                        {user.email}
+                        {
+                          user.email
+                        }
                       </span>
                     </div>
 
@@ -1334,10 +1656,14 @@ function App() {
             </div>
           ) : (
             contacts.map(
-              (contact) => (
+              (
+                contact
+              ) => (
                 <button
                   type="button"
-                  key={contact.id}
+                  key={
+                    contact.id
+                  }
                   className={`contact-item ${
                     selectedContact?.id ===
                     contact.id
@@ -1352,17 +1678,23 @@ function App() {
                 >
                   <div className="contact-avatar">
                     {contact.fullName
-                      .charAt(0)
+                      .charAt(
+                        0
+                      )
                       .toUpperCase()}
                   </div>
 
                   <div className="contact-info">
                     <strong>
-                      {contact.fullName}
+                      {
+                        contact.fullName
+                      }
                     </strong>
 
                     <span>
-                      {contact.email}
+                      {
+                        contact.email
+                      }
                     </span>
                   </div>
                 </button>
@@ -1404,11 +1736,15 @@ function App() {
 
               <div className="chat-header-info">
                 <strong>
-                  {selectedContact.fullName}
+                  {
+                    selectedContact.fullName
+                  }
                 </strong>
 
                 <span>
-                  {selectedContact.email}
+                  {
+                    selectedContact.email
+                  }
                 </span>
               </div>
             </header>
@@ -1440,7 +1776,9 @@ function App() {
               ) : (
                 <div className="messages-list">
                   {messages.map(
-                    (message) => {
+                    (
+                      message
+                    ) => {
                       const mine =
                         message.senderId ===
                         currentUser.id;
@@ -1532,7 +1870,8 @@ function App() {
               </div>
             </div>
 
-            {(error || notice) && (
+            {(error ||
+              notice) && (
               <div
                 className={
                   error
@@ -1540,14 +1879,17 @@ function App() {
                     : "chat-status notice-message"
                 }
               >
-                {error || notice}
+                {error ||
+                  notice}
               </div>
             )}
 
             {imagePreview && (
               <div className="image-preview-area">
                 <img
-                  src={imagePreview}
+                  src={
+                    imagePreview
+                  }
                   alt="Preview"
                 />
 
@@ -1613,10 +1955,16 @@ function App() {
                 ref={
                   messageInputRef
                 }
-                value={messageText}
-                onChange={(event) =>
+                value={
+                  messageText
+                }
+                onChange={(
+                  event
+                ) =>
                   setMessageText(
-                    event.target.value
+                    event
+                      .target
+                      .value
                   )
                 }
                 onKeyDown={
