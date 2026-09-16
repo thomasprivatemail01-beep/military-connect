@@ -1,0 +1,31 @@
+# Environment variables
+.env
+.env.*
+!.env.example
+
+# Dependencies
+node_modules/
+**/node_modules/
+
+# Build output
+dist/
+build/
+**/dist/
+**/build/
+
+# Uploaded files
+backend/uploads/
+uploads/
+
+# Generated JavaScript/TypeScript files
+backend/src/**/*.js
+backend/src/**/*.js.map
+backend/src/**/*.d.ts
+backend/src/**/*.d.ts.map
+
+# Logs
+*.log
+
+# OS files
+.DS_Store
+Thumbs.db

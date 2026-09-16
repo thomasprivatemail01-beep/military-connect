@@ -1,0 +1,226 @@
+/* =========================================================
+   CHAT MESSAGE SCROLLING
+   ========================================================= */
+
+.messages-container {
+  position: relative;
+  min-width: 0;
+  min-height: 0;
+  flex: 1;
+
+  overflow-y: auto;
+  overflow-x: hidden;
+
+  background: #ffffff;
+  padding: 20px 22px;
+
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+
+  scrollbar-width: auto;
+  scrollbar-color: #c5cfca #f5f7f6;
+}
+
+/* Chrome / Edge / Windows scrollbar */
+.messages-container::-webkit-scrollbar {
+  width: 9px;
+}
+
+.messages-container::-webkit-scrollbar-track {
+  background: #f5f7f6;
+}
+
+.messages-container::-webkit-scrollbar-thumb {
+  background: #c5cfca;
+  border-radius: 20px;
+}
+
+.messages-container::-webkit-scrollbar-thumb:hover {
+  background: #9eaaa4;
+}
+
+
+/* =========================================================
+   MESSAGE LIST
+   ========================================================= */
+
+.messages-list {
+  width: 100%;
+  min-width: 0;
+
+  display: flex;
+  flex-direction: column;
+
+  gap: 7px;
+
+  padding-bottom: 12px;
+}
+
+
+/* =========================================================
+   MESSAGE ROW
+   ========================================================= */
+
+.message-row {
+  width: 100%;
+  min-width: 0;
+
+  display: flex;
+}
+
+
+/* YOUR MESSAGE - RIGHT */
+.message-row.mine {
+  justify-content: flex-end;
+}
+
+
+/* OTHER PERSON'S MESSAGE - LEFT */
+.message-row.theirs {
+  justify-content: flex-start;
+}
+
+
+/* =========================================================
+   MESSAGE BUBBLE
+   ========================================================= */
+
+.message-bubble {
+  min-width: 40px;
+  max-width: min(72%, 680px);
+
+  box-sizing: border-box;
+
+  padding: 9px 13px;
+
+  border-radius: 18px;
+
+  overflow-wrap: anywhere;
+  word-break: break-word;
+
+  white-space: normal;
+}
+
+
+/* YOUR MESSAGE */
+.message-bubble.mine-bubble {
+  background: #0084ff;
+  color: #ffffff;
+
+  border-bottom-right-radius: 5px;
+}
+
+
+/* RECEIVER'S MESSAGE */
+.message-bubble.theirs-bubble {
+  background: #e4e6eb;
+  color: #050505;
+
+  border-bottom-left-radius: 5px;
+}
+
+
+/* =========================================================
+   MESSAGE TEXT
+   ========================================================= */
+
+.message-text {
+  margin: 0;
+
+  max-width: 100%;
+
+  color: inherit;
+
+  font-size: 14px;
+  line-height: 1.45;
+
+  white-space: pre-wrap;
+
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+
+/* =========================================================
+   CHAT IMAGES
+   ========================================================= */
+
+.chat-image {
+  display: block;
+
+  width: auto;
+  max-width: 100%;
+  max-height: 420px;
+
+  object-fit: contain;
+
+  border-radius: 12px;
+}
+
+
+/* Image message should not have unnecessary padding */
+.message-bubble:has(.chat-image) {
+  padding: 4px;
+  background: transparent;
+}
+
+
+/* =========================================================
+   CHAT SCROLL ARROWS
+   ========================================================= */
+
+.chat-scroll-buttons {
+  position: absolute;
+
+  right: 18px;
+  bottom: 90px;
+
+  z-index: 20;
+
+  display: flex;
+  flex-direction: column;
+
+  gap: 8px;
+}
+
+
+.chat-scroll-buttons button {
+  width: 38px;
+  height: 38px;
+
+  border: 1px solid #d1d5db;
+  border-radius: 50%;
+
+  background: #ffffff;
+  color: #374151;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  font-size: 15px;
+  font-weight: 700;
+
+  cursor: pointer;
+
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.12);
+
+  transition:
+    background 0.15s ease,
+    transform 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+
+.chat-scroll-buttons button:hover {
+  background: #f3f4f6;
+
+  transform: scale(1.05);
+
+  box-shadow: 0 5px 14px rgba(0, 0, 0, 0.16);
+}
+
+
+.chat-scroll-buttons button:active {
+  transform: scale(0.95);
+}
